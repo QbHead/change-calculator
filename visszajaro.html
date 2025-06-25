@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visszajáró Kalkulátor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 340px;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    input {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 100%;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.6rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      text-align: left;
+      border-top: 1px solid #ccc;
+      padding-top: 1rem;
+    }
+    .result p {
+      margin: 0.2rem 0;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .container {
+        box-shadow: none;
+        width: 100%;
+      }
+      button {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Visszajáró Kalkulátor</h2>
+    <input type="number" id="price" placeholder="Ár (Ft)" />
+    <input type="number" id="received" placeholder="Kapott összeg (Ft)" />
+    <button onclick="calculateChange()">Számol</button>
+    <button onclick="window.print()">Nyugta nyomtatása</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    function roundToNearestFive(amount) {
+      return Math.round(amount / 5) * 5;
+    }
+
+    function calculateChange() {
+      const price = parseFloat(document.getElementById('price').value);
+      const received = parseFloat(document.getElementById('received').value);
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      if (isNaN(price) || isNaN(received)) {
+        resultDiv.innerHTML = '<p>Kérlek, adj meg érvényes számokat.</p>';
+        return;
+      }
+
+      const roundedPrice = roundToNearestFive(price);
+      let totalChange = roundToNearestFive(received - roundedPrice);
+
+      const difference = roundedPrice - price;
+      const roundingNote = difference !== 0 
+        ? `<p>Ár kerekítve: ${roundedPrice} Ft (eltérés: ${difference > 0 ? '+' : ''}${difference} Ft)</p>` 
+        : '';
+
+      if (totalChange < 0) {
+        resultDiv.innerHTML = `${roundingNote}<p>Még hiányzik ${Math.abs(totalChange)} Ft.</p>`;
+        return;
+      } else if (totalChange === 0) {
+        resultDiv.innerHTML = `${roundingNote}<p>Nem kell visszaadni.</p>`;
+        return;
+      }
+
+      const denominations = [20000, 10000, 5000, 2000, 1000, 500, 200, 100, 50, 20, 10, 5];
+      const output = [];
+
+      let remaining = totalChange;
+
+      for (let value of denominations) {
+        const count = Math.floor(remaining / value);
+        if (count > 0) {
+          output.push(`${count} × ${value} Ft`);
+          remaining -= count * value;
+        }
+      }
+
+      if (remaining > 0) {
+        output.push(`Nem tudom pontosan visszaadni a maradék ${remaining} Ft-ot.`);
+      }
+
+      resultDiv.innerHTML = `
+        <p><strong>Nyugta</strong></p>
+        <p>Termék ára: ${price} Ft</p>
+        <p>Kapott összeg: ${received} Ft</p>
+        ${roundingNote}
+        <p><strong>Visszajáró összege: ${totalChange} Ft</strong></p>
+        <p>${output.join('<br>')}</p>
+      `;
+    }
+  </script>
+</body>
+</html>
