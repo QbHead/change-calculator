@@ -12,31 +12,51 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      transition: background 0.3s;
     }
+    .dark-mode {
+      background: #121212;
+      color: #eee;
+    }
+    
     .container {
       background: white;
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
       text-align: center;
-      width: 340px;
+      width: 360px;
+      position: relative;
+      transition: background 0.3s, color 0.3s;
     }
+    .dark-mode .container {
+      background: #1e1e1e;
+      color: #eee;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.05);
+    }
+    
     h2 {
       margin-bottom: 1rem;
     }
-    input {
+    
+    input, button {
       margin: 0.5rem 0;
       padding: 0.5rem;
       width: 100%;
       font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
     button {
-      padding: 0.6rem;
-      font-size: 1rem;
-      margin-top: 1rem;
       cursor: pointer;
-      width: 100%;
     }
+    .dark-mode input, .dark-mode button {
+      background-color: #333;
+      color: #eee;
+      border-color: #666;
+    }
+    
     .result {
       margin-top: 1.5rem;
       font-size: 1rem;
@@ -44,25 +64,98 @@
       border-top: 1px solid #ccc;
       padding-top: 1rem;
     }
-    .result p {
-      margin: 0.2rem 0;
+    .dark-mode .result {
+      border-top-color: #555;
     }
+    
     @media print {
       body {
         background: white;
+        color: black;
       }
       .container {
         box-shadow: none;
         width: 100%;
       }
-      button {
+      button, .toggle-wrapper {
         display: none;
       }
     }
+    
+    .toggle-wrapper {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      cursor: pointer;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      border-radius: 24px;
+      transition: 0.4s;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.4s;
+    }
+    
+    input:checked + .slider {
+      background-color: #666;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .icon {
+      font-size: 1.2rem;
+      user-select: none;
+    }    
+    
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="toggle-wrapper">
+      <label class="switch">
+        <input type="checkbox" id="darkToggle" onchange="toggleDarkMode()">
+        <span class="slider"></span>
+      </label>
+      <span class="icon">🌙</span>
+    </div>
+    
+
     <h2>Visszajáró Kalkulátor</h2>
     <input type="number" id="received" placeholder="Kapott összeg (Ft)" />
     <input type="number" id="price" placeholder="Ár (Ft)" />
@@ -71,6 +164,7 @@
   </div>
 
   <script>
+    // Round to nearest 5 Ft
     function roundToNearestFive(amount) {
       return Math.round(amount / 5) * 5;
     }
@@ -120,7 +214,6 @@
       }
 
       resultDiv.innerHTML = `
-        <p><strong>Nyugta</strong></p>
         <p>Termék ára: ${price} Ft</p>
         <p>Kapott összeg: ${received} Ft</p>
         ${roundingNote}
@@ -128,6 +221,36 @@
         <p>${output.join('<br>')}</p>
       `;
     }
+
+    function toggleDarkMode() {
+      const isDark = document.getElementById('darkToggle').checked;
+      document.body.classList.toggle('dark-mode', isDark);
+      localStorage.setItem('darkMode', isDark);
+    }
+
+    // Load saved dark mode preference
+    window.onload = function () {
+      const isDarkSaved = localStorage.getItem('darkMode') === 'true';
+      document.getElementById('darkToggle').checked = isDarkSaved;
+      document.body.classList.toggle('dark-mode', isDarkSaved);
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const inputs = [document.getElementById('price'), document.getElementById('received')];
+      inputs.forEach(input => {
+        input.addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            calculateChange();
+          }
+        });
+      });
+    
+      // Load saved dark mode preference
+      const isDarkSaved = localStorage.getItem('darkMode') === 'true';
+      document.getElementById('darkToggle').checked = isDarkSaved;
+      document.body.classList.toggle('dark-mode', isDarkSaved);
+    });
   </script>
 </body>
 </html>
